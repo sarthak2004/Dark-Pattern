@@ -3,7 +3,7 @@
     "name": "test1",
     "version": "1.0",
     "action": {
-      "default_popup": "/templates/analysis.html"
+      "default_popup": "/templates/popup.html"
     },
     "permissions":[
       "activeTab",
