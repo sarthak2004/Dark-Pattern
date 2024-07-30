@@ -2,17 +2,11 @@ from flask import Flask, render_template, request, redirect, url_for,jsonify,fla
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 # from flask_sqlalchemy import SQLAlchemy
 import nltk
 from nltk import WordNetLemmatizer
 # import matplotlvib.pyplot as plt
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
 import string
-import xgboost
-from xgboost import XGBClassifier
 from joblib import dump, load
 import joblib
 import csv
@@ -128,7 +122,7 @@ def splitter(input_string):
 def has_letters(text):
     return bool(re.search('[a-zA-Z]', text))
 def clean_csv():
-    df = pd.read_csv("output.csv")
+    df = pd.read_csv("uploads/output.csv")
     column_name = df.columns[0]
     df = df[df[column_name].apply(has_letters)]
 
