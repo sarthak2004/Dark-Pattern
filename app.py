@@ -23,6 +23,8 @@ import requests
 import plotly.graph_objs as go
 from flask_pymongo import PyMongo
 from pymongo.errors import PyMongoError
+import base64, os
+from werkzeug.utils import secure_filename
 
 
 
@@ -57,11 +59,15 @@ def return_sentences(tokens):
 rf= joblib.load("Random_forest_final.joblib")
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
 try:
     app.config["MONGO_URI"] = "mongodb+srv://sarthak062004:PJzsSQUhprD9JAdX@pattern.wkvxu9i.mongodb.net/test?retryWrites=true&w=majority&appName=Pattern"  # Ensure the correct database name is included
     mongo = PyMongo(app)
     db = mongo.db
-    
+    patterns = db.patterns
     userin = db.userin
     # test_collection.insert_one({"message": "Hello, MongoDB!"})
     
@@ -143,21 +149,34 @@ def array_to_csv(csv_data, filename):
 def index():
     return render_template('index.html')
 
-app.secret_key = 'xyz'
-@app.route('/data_collect',methods=['GET','POST'])
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
+@app.route('/data_collect',methods=['POST'])
 def data_collect():
     if request.method == 'POST':
         fname = request.form.get('fname')
         email = request.form.get('mail')
         url = request.form.get('url')
         dark_pattern_noticed = request.form.get('dark_pattern_noticed')
+        
+        file = request.files.get('file')
+        encoded_string = None
+        if file:
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            with open(file_path, 'rb') as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+
+            # Remove the temporary file
+            os.remove(file_path)
+        
         user_id = userin.insert_one({
             'name': fname,
             'email': email,
             'URL': url,
-            'note':dark_pattern_noticed
+            'note':dark_pattern_noticed,
+            'image_base64': encoded_string
         }).inserted_id
-        # file = request.files['file']
         # Flash a success message
         flash('Form submitted successfully!')
         return redirect(url_for('index'))
@@ -172,7 +191,7 @@ def analysis():
             extracted_text = extract_text(driver)
             driver.quit()
             csv_data = splitter(extracted_text)
-            array_to_csv(csv_data, "output.csv")
+            array_to_csv(csv_data, "uploads/output.csv")
             df=clean_csv()
             df.dropna(inplace = True)
             df.drop_duplicates(inplace = True)
@@ -198,7 +217,7 @@ def analysis():
 
             tfidf_array = tfidf_vectorizer.transform(df[column_name])
 
-
+            os.remove("uploads/output.csv")
             probabilities = rf.predict_proba(tfidf_array)
 
             pre_predicted = rf.predict(tfidf_array)
@@ -213,6 +232,14 @@ def analysis():
             predicted_classes = rf.predict(tfidf_array[rows_above_threshold])
 
             result = pd.DataFrame({'Filtered_Data': filtered_data, 'Predicted_Class': predicted_classes})
+            p = {}
+            for i in range(0, len(filtered_data)):
+                # print(predicted_classes[i], filtered_data[i])
+                if (class_mapping[predicted_classes[i]] in p):
+                    p[class_mapping[predicted_classes[i]]].append(filtered_data[i])
+                else:
+                    p[class_mapping[predicted_classes[i]]] = [filtered_data[i]]
+            
             result.replace({"Predicted_Class": class_mapping}, inplace=True)
 
             category_frequencies = result['Predicted_Class'].value_counts()
@@ -226,8 +253,17 @@ def analysis():
 
             numpy_data= (frequency_df).to_numpy()
             result_val=result.values
-            print(result)
 
+            
+            # Perform the update operation
+            for key, values in p.items():
+                patterns.update_one(
+                    {'_id': 1},  # Use a fixed unique identifier
+                    {'$addToSet' : {key: {'$each': values}}}, # Update the fields with $push operator
+                    upsert = True  
+                     # Create the document if it does not exist
+                )
+            print(result)
             column1 = numpy_data[:, 0]
             column2 = numpy_data[:, 1]
 
