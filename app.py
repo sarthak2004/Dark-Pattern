@@ -22,7 +22,7 @@ import re
 import requests
 import plotly.graph_objs as go
 from flask_pymongo import PyMongo
-
+from pymongo.errors import PyMongoError
 
 
 
@@ -56,15 +56,18 @@ def return_sentences(tokens):
 
 rf= joblib.load("Random_forest_final.joblib")
 
-
-
-
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/myDatabase"
-
-db = PyMongo(app).db
-
-
+try:
+    app.config["MONGO_URI"] = "mongodb+srv://sarthak062004:PJzsSQUhprD9JAdX@pattern.wkvxu9i.mongodb.net/test?retryWrites=true&w=majority&appName=Pattern"  # Ensure the correct database name is included
+    mongo = PyMongo(app)
+    db = mongo.db
+    
+    userin = db.userin
+    # test_collection.insert_one({"message": "Hello, MongoDB!"})
+    
+    print("connected and data inserted")
+except PyMongoError as e:
+    print(f"MongoDB error: {e}")
 
 
 url=""
@@ -126,8 +129,6 @@ def clean_csv():
     # Optionally, you can reset the index if you want consecutive row numbers
     df.reset_index(drop=True, inplace=True)
 
-    # print(df)
-
     return df
     
 
@@ -142,13 +143,26 @@ def array_to_csv(csv_data, filename):
 def index():
     return render_template('index.html')
 
+app.secret_key = 'xyz'
+@app.route('/data_collect',methods=['GET','POST'])
+def data_collect():
+    if request.method == 'POST':
+        fname = request.form.get('fname')
+        email = request.form.get('mail')
+        url = request.form.get('url')
+        dark_pattern_noticed = request.form.get('dark_pattern_noticed')
+        user_id = userin.insert_one({
+            'name': fname,
+            'email': email,
+            'URL': url,
+            'note':dark_pattern_noticed
+        }).inserted_id
+        # file = request.files['file']
+        # Flash a success message
+        flash('Form submitted successfully!')
+        return redirect(url_for('index'))
 
-@app.route('/form-submit',methods=['GET','POST'])
-def form_submit():
-    if request.method=='POST':
-        flash(f"Dark Pattern reported successfully")
-    return render_template("index.html")
-    
+
 @app.route('/analysis', methods=['GET', 'POST'])
 def analysis():
     if request.method=='POST':
@@ -238,8 +252,6 @@ def analysis():
     else:
         return render_template('analysis.html')
 
-    
-    
 
 if __name__ == '__main__':
     app.run(debug=True)
