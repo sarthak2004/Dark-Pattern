@@ -40,13 +40,11 @@ def tokenize(text):
     return [x.lower() for x in text]
 
 
-nltk.download('stopwords')
 
 def remove_stopwords(text):
     return [word for word in text if word not in nltk.corpus.stopwords.words('english')]
 
 
-nltk.download('wordnet')
 def lemmatize(text):
     word_net = WordNetLemmatizer()
     return [word_net.lemmatize(word) for word in text]
@@ -79,7 +77,7 @@ def process_link(link):
     options = Options()
     options.add_argument('--disable-dev-shm-usage')
     # options.add_argument("--headless=new")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver = webdriver.Chrome(service=Service(r'C:\Users\mansi\.wdm\drivers\chromedriver\win64\127.0.6533.72\chromedriver-win32\chromedriver.exe'), options=options)
 
    
     driver.get(link)
