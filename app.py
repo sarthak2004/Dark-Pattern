@@ -20,7 +20,8 @@ from pymongo.errors import PyMongoError
 import base64, os
 from werkzeug.utils import secure_filename
 
-
+nltk.download('wordnet')
+nltk.download('stopwords')
 
 
 
