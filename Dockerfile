@@ -6,9 +6,11 @@ RUN apt-get update && apt-get install -y \
   dpkg \
   && rm -rf /var/lib/apt/lists/*
 
-# Copy your application and script
-COPY . /app
+# Set working directory
 WORKDIR /app
+
+# Copy application files and script from Dark-Pattern directory
+COPY Dark-Pattern/ /app
 
 # Copy and run the shell script
 COPY setup-chrome.sh /usr/local/bin/setup-chrome.sh

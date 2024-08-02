@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Exit on error
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -17,13 +16,15 @@ if [[ ! -d $CHROME_DIR ]]; then
     exit 1
   fi
 
-  dpkg -x google-chrome-stable_current_amd64.deb $CHROME_DIR || {
+  if ! dpkg -x google-chrome-stable_current_amd64.deb $CHROME_DIR; then
     echo "Failed to extract Google Chrome package. Exiting."
     exit 1
-  }
+  fi
 
   rm google-chrome-stable_current_amd64.deb
-  cd $HOME/project/src # Make sure we return to where we were
+
+  # Ensure we’re in the correct working directory
+  cd /app
 else
   echo "...Using Chrome from cache"
 fi
