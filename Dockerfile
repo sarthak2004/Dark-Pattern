@@ -1,48 +1,26 @@
-# Use the official Python 3.10.8 image from the Docker Hub
-FROM python:3.10.8-slim
+FROM python:3.10.8
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Set working directory
+COPY . /app
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update \
-  && apt-get install -y \
-  build-essential \
-  curl \
-  gnupg \
-  wget \
-  unzip \
-  libnss3 \
-  libatk-bridge2.0-0 \
-  libgtk-3-0 \
-  libvulkan1 \
-  xdg-utils \
-  libu2f-udev \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+RUN mkdir __logger
 
-# Install Chrome from Google's official repository
-RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-  && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list \
-  && apt-get update \
-  && apt-get install -y google-chrome-stable \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+# install google chrome
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+RUN apt-get -y update
+RUN apt-get install -y google-chrome-stable
 
-# Copy the requirements file and install Python dependencies
-COPY requirements.txt /app/
-RUN pip install --upgrade pip \
-  && pip install -r requirements.txt
+# install chromedriver
+RUN apt-get install -yqq unzip
+RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
+RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 
-# Copy the application code
-COPY . /app/
+# set display port to avoid crash
+ENV DISPLAY=:99
 
-# Expose the port the app runs on
+RUN pip install --upgrade pip
+
+RUN pip install -r requirements.txt
 EXPOSE 5000
-
-# Run the Flask application
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+CMD ["python", "./app.py"]
