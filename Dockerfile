@@ -19,14 +19,19 @@ RUN apt-get update \
   libnss3 \
   libatk-bridge2.0-0 \
   libgtk-3-0 \
+  libvulkan1 \
+  xdg-utils \
+  libu2f-udev \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Install Chrome
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-  && dpkg -i google-chrome-stable_current_amd64.deb \
-  && apt-get -f install -y \
-  && rm google-chrome-stable_current_amd64.deb
+# Install Chrome from Google's official repository
+RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+  && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list \
+  && apt-get update \
+  && apt-get install -y google-chrome-stable \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements file and install Python dependencies
 COPY requirements.txt /app/
