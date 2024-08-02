@@ -33,13 +33,6 @@ RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Download and install ChromeDriver
-RUN curl -sSL https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip -o chromedriver.zip \
-  && unzip chromedriver.zip \
-  && mv chromedriver /usr/local/bin/chromedriver \
-  && chmod +x /usr/local/bin/chromedriver \
-  && rm chromedriver.zip
-
 # Copy the requirements file and install Python dependencies
 COPY requirements.txt /app/
 RUN pip install --upgrade pip \
