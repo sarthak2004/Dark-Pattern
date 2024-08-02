@@ -77,16 +77,25 @@ url=""
 def receive_url():
     data = request.json
     url = data.get('url')
-
 def process_link(link):
     options = Options()
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--headless')
-    chrome_driver_path = ChromeDriverManager().install()
-    corrected_path = os.path.join(os.path.dirname(chrome_driver_path), 'chromedriver.exe')
-    driver = webdriver.Chrome(service=Service(corrected_path), options=options)
+
+    # Use the system-installed ChromeDriver
+    driver = webdriver.Chrome(service=Service('/usr/local/bin/chromedriver'), options=options)
     driver.get(link)
     return driver
+
+# def process_link(link):
+#     options = Options()
+#     options.add_argument('--disable-dev-shm-usage')
+#     options.add_argument('--headless')
+#     chrome_driver_path = ChromeDriverManager().install()
+#     corrected_path = os.path.join(os.path.dirname(chrome_driver_path), 'chromedriver.exe')
+#     driver = webdriver.Chrome(service=Service(corrected_path), options=options)
+#     driver.get(link)
+#     return driver
 
 
 def is_url_scrapable(url):
