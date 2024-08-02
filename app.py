@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for,jsonify,fla
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 # from flask_sqlalchemy import SQLAlchemy
 import nltk
 from nltk import WordNetLemmatizer
@@ -66,7 +67,7 @@ try:
     userin = db.userin
     # test_collection.insert_one({"message": "Hello, MongoDB!"})
     
-    print("connected and data inserted")
+    print("connected")
 except PyMongoError as e:
     print(f"MongoDB error: {e}")
 
@@ -80,12 +81,13 @@ def receive_url():
 def process_link(link):
     options = Options()
     options.add_argument('--disable-dev-shm-usage')
-    # options.add_argument("--headless=new")
-    driver = webdriver.Chrome(service=Service(r'C:\Users\mansi\.wdm\drivers\chromedriver\win64\127.0.6533.72\chromedriver-win32\chromedriver.exe'), options=options)
-
-   
+    options.add_argument('--headless')
+    chrome_driver_path = ChromeDriverManager().install()
+    corrected_path = os.path.join(os.path.dirname(chrome_driver_path), 'chromedriver.exe')
+    driver = webdriver.Chrome(service=Service(corrected_path), options=options)
     driver.get(link)
     return driver
+
 
 def is_url_scrapable(url):
     try:
@@ -215,7 +217,7 @@ def analysis():
             os.remove("uploads/output.csv")
             probabilities = rf.predict_proba(tfidf_array)
 
-            pre_predicted = rf.predict(tfidf_array)
+            # pre_predicted = rf.predict(tfidf_array)
 
             rows_above_threshold = np.where( (np.max(probabilities, axis=1) > 0.80))[0]
 
