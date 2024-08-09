@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Pattern Analysis</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="plotly-strict-2.11.0.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Dark Pattern Analysis</h1>
+    <button id="getDataButton">Get Analysis Data</button>
+    <div id="graph"></div>
+  </div>
+
+  <div id="loadingScreen" style="display: none;">
+    <div id="loadingSpinner"></div>
+  </div>
+
+  <script src="service.js"></script>
+</body>
+
+</html>

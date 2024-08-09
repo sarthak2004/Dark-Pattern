@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Dark Pattern Analysis",
+  "version": "1.0",
+  "description": "Analyze web pages for dark patterns.",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "callback.html",
+    "default_icon": "logo.png"
+  },
+  "icons": {
+    "128": "logo.png"
+  }
+}
