@@ -11,3 +11,4 @@ selenium==4.18.1
 webdriver_manager==4.0.1
 # xgboost==2.0.3
 waitress==3.0.0
+flask-cors==4.0.1
