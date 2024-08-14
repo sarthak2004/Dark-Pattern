@@ -27,9 +27,9 @@ from selenium_stealth import stealth
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# nltk.download('wordnet')
-# nltk.download('stopwords')
-# nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('stopwords')
+nltk.download('punkt')
 
 # Helper functions
 def remove_punct(text):
@@ -52,8 +52,7 @@ def lemmatize(text):
 def return_sentences(tokens):
     return " ".join([word for word in tokens])
 
-# Load your machine learning model
-rf = joblib.load("Random_forest_final.joblib")
+
 
 app.config['UPLOAD_FOLDER'] = 'uploads'
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -190,10 +189,12 @@ def analysis():
         csv_data = splitter(extracted_text)
         # print(csv_data)
         # array_to_csv(csv_data, "uploads/output.csv")
-        df = df = pd.DataFrame({'col':csv_data})
+        # Load your machine learning model
+        rf = joblib.load("voting_rf_lr_svc.joblib")
+        df = pd.DataFrame({'col':csv_data})
         df.dropna(inplace=True)
         df.drop_duplicates(inplace=True)
-
+        df.to_csv("uploads/check.csv")
         column_name = df.columns[0]
         df[column_name] = df[column_name].astype(str)
         df[column_name] = df[column_name].apply(lambda x: sent_tokenize(x) if isinstance(x, str) else [])
@@ -224,11 +225,11 @@ def analysis():
         rows_above_threshold = []
         thresholds = {
             0: 0.60,  # Threshold for 'forced action'
-            1: 0.85,  # Threshold for 'misdirection'
+            1: 0.80,  # Threshold for 'misdirection'
             2: 0.60,  # Threshold for 'obstruction'
-            3: 0.85,  # Threshold for 'scarcity'
+            3: 0.80,  # Threshold for 'scarcity'
             4: 0.50,  # Threshold for 'sneaking'
-            5: 0.60,  # Threshold for 'social proof'
+            5: 0.70,  # Threshold for 'social proof'
             6: 0.70   # Threshold for 'urgency'
         }
         # Iterate over each row in the probabilities array
