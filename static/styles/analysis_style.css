@@ -1,0 +1,59 @@
+body {
+  background-image: url('https://static.wixstatic.com/media/84770f_994ffe746a074d1f8a2ec9456a8bf1ff~mv2.png/v1/fill/w_1047,h_960,al_br,q_90,usm_0.66_1.00_0.01,enc_auto/84770f_994ffe746a074d1f8a2ec9456a8bf1ff~mv2.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.plotly-graph-div {
+  margin: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin-top: 20px;
+  /* Adjust as needed */
+  margin-bottom: 20px;
+  /* Adjust as needed */
+}
+
+.graph-container {
+  display: flex;
+  /* box-sizing: border-box; */
+  margin-top: 100px;
+  /* Adjust as needed */
+  margin-bottom: 20px;
+  /* Adjust as needed */
+}
+
+#loadingScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#loadingSpinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

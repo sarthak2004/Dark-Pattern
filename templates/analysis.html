@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dark Pattern Buster</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link href="{{ url_for('static', filename='styles/analysis_style.css') }}" rel="stylesheet" type="text/css">
+  <script src="{{ url_for('static', filename='scripts/plotly-strict-2.11.0.min.js') }}"></script>
+
+
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand">
+    <div class="container-fluid" style="background-color:#fefeff">
+      <a class="navbar-brand fs-2 " href="/">Dark pattern Busters</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+        aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+    </div>
+    <div class="collapse navbar-collapse " id="navbarNavAltMarkup">
+      <div class="navbar-nav fs-4 ">
+        <a class="nav-link active" aria-current="page" href="/">Home</a>
+        <a class="nav-link" href="/analysis">Analysis</a>
+        <a class="nav-link" href="#">About</a>
+      </div>
+    </div>
+  </nav>
+
+
+
+
+  <div class="container">
+    <h1 class="text-center">Dark Pattern Buster</h1>
+
+    <div class="row height d-flex justify-content-center align-items-center">
+
+      <div class="col-md-6">
+
+        <div class="form">
+          <i class="fa fa-search"></i>
+          <input type="text" class="form-control form-input" placeholder="Enter Link" name="link" autocapitalize="off"
+            id="link">
+          <span class="left-pan"></span>
+        </div>
+
+      </div>
+
+    </div>
+    <div class="text-center mt-5">
+
+      <button class="btn btn-primary " id="getDataButton">Search</button>
+
+    </div>
+
+  </div>
+  <div id="loadingScreen" style="display: none;">
+    <div id="loadingSpinner"></div>
+  </div>
+  <div style="display: flex; justify-content: center;">
+    <div id="graph-container"></div>
+  </div>
+
+  <script src="{{ url_for('static', filename='scripts/analysis_graph.js') }}"></script>
+
+
+
+  <div class="text-center m-5">
+    <iframe class="m-5" width="560" height="315" src="https://www.youtube.com/embed/lJUW0iZzAaQ?si=_hocwCVdffVgX_XQ"
+      title="YouTube video player" frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen></iframe>
+    <iframe class="m-5" width="560" height="315" src="https://www.youtube.com/embed/Ql9YDQ-A-YY?si=xLTfvripURD_Pai8"
+      title="YouTube video player" frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen></iframe>
+  </div>
+
+
+
+
+  </div>
+
+
+
+
+
+  </div>
+
+
+
+
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+
+</body>
+
+</html>
