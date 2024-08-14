@@ -20,13 +20,16 @@ from werkzeug.utils import secure_filename
 from flask_cors import CORS
 import joblib
 from nltk.tokenize import sent_tokenize
+from selenium.webdriver.common.by import By
+import time
+from selenium_stealth import stealth 
 # Initialize Flask application
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-nltk.download('wordnet')
-nltk.download('stopwords')
-nltk.download('punkt')
+# nltk.download('wordnet')
+# nltk.download('stopwords')
+# nltk.download('punkt')
 
 # Helper functions
 def remove_punct(text):
@@ -78,7 +81,25 @@ def process_link(link):
     options = Options()
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--headless')
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--disable-popup-blocking')
+    options.add_argument('--start-maximized')
+    options.add_argument('--disable-extensions')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--allow-running-insecure-content')
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36")
     driver = webdriver.Chrome(options=options)
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    
+    stealth(driver,
+        languages=["en-US", "en"],
+        locale="en-US",
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Google Inc.",
+        renderer="ANGLE (Intel® HD Graphics 620 Direct3D11 vs_5_0 ps_5_0)",
+        fix_hairline=True)
     driver.get(link)
     return driver
 
@@ -93,8 +114,10 @@ def is_url_scrapable(url):
 def extract_text(driver):
     i = 0
     extracted_text = ''
+    while driver.execute_script("return document.readyState") != "complete":
+        pass
     while i < 5:
-        extracted_text += driver.find_element("xpath", "/html/body").text + '\n'
+        extracted_text += driver.find_element(By.XPATH, "/html/body").text + '\n'
         driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
         i += 1
     return extracted_text
@@ -161,118 +184,120 @@ def analysis():
     if (request.method == 'POST'):
         input_data = request.json
         link = input_data.get('link')
-        if is_url_scrapable(link):
-            driver = process_link(link)
-            extracted_text = extract_text(driver)
-            driver.quit()
-            csv_data = splitter(extracted_text)
-            # array_to_csv(csv_data, "uploads/output.csv")
-            df = df = pd.DataFrame({'col':csv_data})
-            df.dropna(inplace=True)
-            df.drop_duplicates(inplace=True)
+        driver = process_link(link)
+        extracted_text = extract_text(driver)
+        driver.quit()
+        csv_data = splitter(extracted_text)
+        # print(csv_data)
+        # array_to_csv(csv_data, "uploads/output.csv")
+        df = df = pd.DataFrame({'col':csv_data})
+        df.dropna(inplace=True)
+        df.drop_duplicates(inplace=True)
 
-            column_name = df.columns[0]
-            df[column_name] = df[column_name].astype(str)
-            df[column_name] = df[column_name].apply(lambda x: sent_tokenize(x) if isinstance(x, str) else [])
-            df = df.explode(column_name).reset_index(drop=True)
-            df[column_name] = df[column_name].apply(remove_punct)
-            df[column_name] = df[column_name].apply(tokenize)
-            df[column_name] = df[column_name].apply(lemmatize)
-            df[column_name] = df[column_name].apply(lambda x: None if (len(x) > 10 or len(x) < 2) else x)
-            df.dropna(inplace=True)
-            df.drop_duplicates(inplace=True)
-            df[column_name] = df[column_name].apply(return_sentences)
-            
-        
-            
-
-            class_mapping = {
-                0: 'forced action', 1: 'misdirection', 2: 'obstruction', 
-                3: 'scarcity', 4: 'sneaking', 5: 'social proof', 6: 'urgency'
-            }
-
-            tfidf_vectorizer = joblib.load("vectorizer2.joblib")
-            numpy_array = df[column_name].values
-            tfidf_array = tfidf_vectorizer.transform(df[column_name])
-            
-            probabilities = rf.predict_proba(tfidf_array)
-            # rows_above_threshold = np.where(np.max(probabilities, axis=1) > 0.80)[0]
-            rows_above_threshold = []
-            thresholds = {
-                0: 0.60,  # Threshold for 'forced action'
-                1: 0.85,  # Threshold for 'misdirection'
-                2: 0.60,  # Threshold for 'obstruction'
-                3: 0.85,  # Threshold for 'scarcity'
-                4: 0.50,  # Threshold for 'sneaking'
-                5: 0.60,  # Threshold for 'social proof'
-                6: 0.70   # Threshold for 'urgency'
-            }
-            # Iterate over each row in the probabilities array
-            for i, probs in enumerate(probabilities):
-                # Check if the probability for the predicted class is above its specific threshold
-                predicted_class = np.argmax(probs)
-                if probs[predicted_class] > thresholds[predicted_class]:
-                    rows_above_threshold.append(i)
-
-            rows_above_threshold = np.array(rows_above_threshold)
-            # os.remove("uploads/output.csv")
-            if rows_above_threshold.size < 1:
-                response_json = {
-                    "id": 0
+        column_name = df.columns[0]
+        df[column_name] = df[column_name].astype(str)
+        df[column_name] = df[column_name].apply(lambda x: sent_tokenize(x) if isinstance(x, str) else [])
+        df = df.explode(column_name).reset_index(drop=True)
+        df[column_name] = df[column_name].apply(remove_punct)
+        df[column_name] = df[column_name].apply(tokenize)
+        df[column_name] = df[column_name].apply(lemmatize)
+        df[column_name] = df[column_name].apply(lambda x: None if (len(x) > 10 or len(x) < 2) else x)
+        df.dropna(inplace=True)
+        df.drop_duplicates(inplace=True)
+        df[column_name] = df[column_name].apply(return_sentences)
+        if df.empty:
+            response_json = {
+                    "id": 2
                 }
-                return jsonify(response_json)
-            filtered_data = numpy_array[rows_above_threshold]
-            predicted_classes = rf.predict(tfidf_array[rows_above_threshold])
-            confidence_scores = np.max(probabilities[rows_above_threshold], axis=1)
-            result = pd.DataFrame({'Filtered_Data': filtered_data, 'Predicted_Class': predicted_classes, 'Confidence_Score': confidence_scores})
-            p = {}
-            for i in range(0, len(filtered_data)):
-                # print(predicted_classes[i], filtered_data[i])
-                if (class_mapping[predicted_classes[i]] in p):
-                    p[class_mapping[predicted_classes[i]]].append(filtered_data[i])
-                else:
-                    p[class_mapping[predicted_classes[i]]] = [filtered_data[i]]
+            return jsonify(response_json)
+        class_mapping = {
+            0: 'forced action', 1: 'misdirection', 2: 'obstruction', 
+            3: 'scarcity', 4: 'sneaking', 5: 'social proof', 6: 'urgency'
+        }
 
-            result.replace({"Predicted_Class": class_mapping}, inplace=True)
-            category_frequencies = result['Predicted_Class'].value_counts()
-            frequency_df = pd.DataFrame({'Category': category_frequencies.index, 'Frequency': category_frequencies.values})
-            numpy_data = frequency_df.to_numpy()
-            column1 = numpy_data[:, 0]
-            column2 = numpy_data[:, 1]
-            for key, values in p.items():
-                patterns.update_one(
-                    {'_id': key},  
-                    {'$addToSet' : {'data': {'$each': values}}}, 
-                    upsert = True  
-                        # Create the document if it does not exist
-                )
-            trace = go.Bar(x=column1, y=column2, name='Data')
-            layout = go.Layout(
-                title='Dark Pattern Found', 
-                xaxis=dict(title='Dark Pattern Category'), 
-                yaxis=dict(title='Occurrences'),
-                autosize=False,
-                margin=dict(l=50, r=50, b=100, t=100)  # Adjust margins as needed
-            )
-            fig = go.Figure(data=[trace], layout=layout)
-            fig_json = fig.to_json()
+        tfidf_vectorizer = joblib.load("vectorizer2.joblib")
+        numpy_array = df[column_name].values
+        tfidf_array = tfidf_vectorizer.transform(df[column_name])
+        
+        probabilities = rf.predict_proba(tfidf_array)
+        # rows_above_threshold = np.where(np.max(probabilities, axis=1) > 0.80)[0]
+        rows_above_threshold = []
+        thresholds = {
+            0: 0.60,  # Threshold for 'forced action'
+            1: 0.85,  # Threshold for 'misdirection'
+            2: 0.60,  # Threshold for 'obstruction'
+            3: 0.85,  # Threshold for 'scarcity'
+            4: 0.50,  # Threshold for 'sneaking'
+            5: 0.60,  # Threshold for 'social proof'
+            6: 0.70   # Threshold for 'urgency'
+        }
+        # Iterate over each row in the probabilities array
+        for i, probs in enumerate(probabilities):
+            # Check if the probability for the predicted class is above its specific threshold
+            predicted_class = np.argmax(probs)
+            if probs[predicted_class] > thresholds[predicted_class]:
+                rows_above_threshold.append(i)
+
+        rows_above_threshold = np.array(rows_above_threshold)
+        # os.remove("uploads/output.csv")
+        if rows_above_threshold.size < 1:
             response_json = {
-                "id": 1,
-                "data":fig_json
-            }
-            response = jsonify(response_json)
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            response.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-            return response
-        else:
-            response_json = {
-                "id": 2
+                "id": 0
             }
             return jsonify(response_json)
+        filtered_data = numpy_array[rows_above_threshold]
+        predicted_classes = rf.predict(tfidf_array[rows_above_threshold])
+        confidence_scores = np.max(probabilities[rows_above_threshold], axis=1)
+        result = pd.DataFrame({'Filtered_Data': filtered_data, 'Predicted_Class': predicted_classes, 'Confidence_Score': confidence_scores})
+        p = {}
+        for i in range(0, len(filtered_data)):
+            # print(predicted_classes[i], filtered_data[i])
+            if (class_mapping[predicted_classes[i]] in p):
+                p[class_mapping[predicted_classes[i]]].append(filtered_data[i])
+            else:
+                p[class_mapping[predicted_classes[i]]] = [filtered_data[i]]
+
+        result.replace({"Predicted_Class": class_mapping}, inplace=True)
+        category_frequencies = result['Predicted_Class'].value_counts()
+        frequency_df = pd.DataFrame({'Category': category_frequencies.index, 'Frequency': category_frequencies.values})
+        numpy_data = frequency_df.to_numpy()
+        column1 = numpy_data[:, 0]
+        column2 = numpy_data[:, 1]
+        for key, values in p.items():
+            patterns.update_one(
+                {'_id': key},  
+                {'$addToSet' : {'data': {'$each': values}}}, 
+                upsert = True  
+                    # Create the document if it does not exist
+            )
+        trace = go.Bar(x=column1, y=column2, name='Data')
+        layout = go.Layout(
+            title='Dark Pattern Found', 
+            xaxis=dict(title='Dark Pattern Category'), 
+            yaxis=dict(title='Occurrences'),
+            autosize=False,
+            margin=dict(l=50, r=50, b=100, t=100)  # Adjust margins as needed
+        )
+        fig = go.Figure(data=[trace], layout=layout)
+        fig_json = fig.to_json()
+        response_json = {
+            "id": 1,
+            "data":fig_json
+        }
+        response = jsonify(response_json)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        print(result)
+        return response
+        # else:
+        #     response_json = {
+        #         "id": 2
+        #     }
+        #     return jsonify(response_json)
     else:
         return render_template('analysis.html')
 
 port = int(os.environ.get('PORT', 5000))
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
