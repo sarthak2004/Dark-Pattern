@@ -18,6 +18,7 @@ document.getElementById('getDataButton').addEventListener('click', function (e) 
       // Parse and plot the data
       if (id == 1) {
         var fig = JSON.parse(data.data);
+        document.getElementById('graph-container').innerHTML = "";
         Plotly.newPlot('graph-container', fig.data, fig.layout);
       }
       else if (id == 2) {

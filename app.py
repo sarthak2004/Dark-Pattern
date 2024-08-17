@@ -80,24 +80,27 @@ def process_link(link):
     options = Options()
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--headless')
-    options.add_argument('--disable-blink-features=AutomationControlled')
+    # options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument("--disable-3d-apis")
     options.add_argument('--disable-popup-blocking')
     options.add_argument('--start-maximized')
     options.add_argument('--disable-extensions')
     options.add_argument('--no-sandbox')
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--allow-running-insecure-content')
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
     driver = webdriver.Chrome(options=options)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     
     stealth(driver,
+        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36',
         languages=["en-US", "en"],
         locale="en-US",
         vendor="Google Inc.",
         platform="Win32",
         webgl_vendor="Google Inc.",
-        renderer="ANGLE (Intel® HD Graphics 620 Direct3D11 vs_5_0 ps_5_0)",
+        renderer="Intel Iris OpenGL Engine",
         fix_hairline=True)
     driver.get(link)
     return driver
@@ -114,8 +117,9 @@ def extract_text(driver):
     i = 0
     extracted_text = ''
     while driver.execute_script("return document.readyState") != "complete":
-        pass
-    while i < 5:
+        pass 
+    i = 0
+    while (i < 5):
         extracted_text += driver.find_element(By.XPATH, "/html/body").text + '\n'
         driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
         i += 1
@@ -194,7 +198,6 @@ def analysis():
         df = pd.DataFrame({'col':csv_data})
         df.dropna(inplace=True)
         df.drop_duplicates(inplace=True)
-        df.to_csv("uploads/check.csv")
         column_name = df.columns[0]
         df[column_name] = df[column_name].astype(str)
         df[column_name] = df[column_name].apply(lambda x: sent_tokenize(x) if isinstance(x, str) else [])
@@ -227,9 +230,9 @@ def analysis():
             0: 0.60,  # Threshold for 'forced action'
             1: 0.80,  # Threshold for 'misdirection'
             2: 0.60,  # Threshold for 'obstruction'
-            3: 0.80,  # Threshold for 'scarcity'
+            3: 0.85,  # Threshold for 'scarcity'
             4: 0.50,  # Threshold for 'sneaking'
-            5: 0.70,  # Threshold for 'social proof'
+            5: 0.85,  # Threshold for 'social proof'
             6: 0.70   # Threshold for 'urgency'
         }
         # Iterate over each row in the probabilities array
