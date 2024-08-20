@@ -233,7 +233,7 @@ def analysis():
             3: 0.85,  # Threshold for 'scarcity'
             4: 0.50,  # Threshold for 'sneaking'
             5: 0.85,  # Threshold for 'social proof'
-            6: 0.70   # Threshold for 'urgency'
+            6: 0.75   # Threshold for 'urgency'
         }
         # Iterate over each row in the probabilities array
         for i, probs in enumerate(probabilities):
