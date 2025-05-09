@@ -79,18 +79,18 @@ def receive_url():
 
 def process_link(link):
     options = Options()
+    options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--headless')
     # options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument("--disable-3d-apis")
     options.add_argument('--disable-popup-blocking')
-    options.add_argument('--start-maximized')
+    # options.add_argument('--start-maximized')
     options.add_argument('--disable-extensions')
-    options.add_argument('--no-sandbox')
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--allow-running-insecure-content')
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
+    # options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    # options.add_experimental_option('useAutomationExtension', False)
     driver = webdriver.Chrome(options=options)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     
