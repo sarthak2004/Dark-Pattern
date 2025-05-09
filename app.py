@@ -14,6 +14,7 @@ import re
 import requests
 import plotly.graph_objs as go
 from flask_pymongo import PyMongo
+from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 import base64, os
 from werkzeug.utils import secure_filename
@@ -23,6 +24,7 @@ from nltk.tokenize import sent_tokenize
 from selenium.webdriver.common.by import By
 import time
 from selenium_stealth import stealth 
+import os
 # Initialize Flask application
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -59,11 +61,10 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
 try:
-    app.config["MONGO_URI"] = "mongodb+srv://sarthak062004:PJzsSQUhprD9JAdX@pattern.wkvxu9i.mongodb.net/test?retryWrites=true&w=majority&appName=Pattern"
-    mongo = PyMongo(app)
-    db = mongo.db
-    patterns = db.patterns
-    userin = db.userin
+    mongo = MongoClient(os.getenv('MONGO_URI'))
+    db = mongo["db"]
+    patterns = db["patterns"]
+    userin = db["userin"]
     print("connected")
 except PyMongoError as e:
     print(f"MongoDB error: {e}")
